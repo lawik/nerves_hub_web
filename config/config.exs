@@ -82,5 +82,7 @@ config :opentelemetry,
 
 config :swoosh, :api_client, Swoosh.ApiClient.Finch
 
+config :sentry, enable_source_code_context: false
+
 # Environment specific config
 import_config "#{Mix.env()}.exs"
