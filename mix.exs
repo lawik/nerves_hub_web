@@ -105,7 +105,9 @@ defmodule NervesHub.MixProject do
       {:telemetry_metrics_statsd, "~> 0.7.0"},
       {:telemetry_poller, "~> 1.0"},
       {:timex, "~> 3.1"},
-      {:x509, "~> 0.5.1 or ~> 0.6"}
+      {:x509, "~> 0.5.1 or ~> 0.6"},
+      {:explorer, "~> 0.8.3"},
+      {:recase, "~> 0.8.1"}
     ]
   end
 
