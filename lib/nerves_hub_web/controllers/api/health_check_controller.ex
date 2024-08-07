@@ -10,4 +10,7 @@ defmodule NervesHubWeb.API.HealthCheckController do
   """
   def health_check(conn, _),
     do: json(conn, %{status: "UP"})
+
+  def timestamp(conn, _),
+    do: json(conn, %{time: System.system_time(:second)})
 end

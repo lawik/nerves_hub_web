@@ -59,6 +59,7 @@ defmodule NervesHubWeb.Router do
     pipe_through(:api)
 
     get("/health", HealthCheckController, :health_check)
+    get("/time", HealthCheckController, :timestamp)
 
     post("/users/auth", UserController, :auth)
     post("/users/login", UserController, :login)
