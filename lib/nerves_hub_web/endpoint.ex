@@ -16,6 +16,10 @@ defmodule NervesHubWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]]
   )
 
+  socket("/onboarding", NervesHubWeb.OnboardingSocket,
+    websocket: [connect_info: []]
+  )
+
   socket(
     "/device-socket",
     NervesHubWeb.DeviceSocket,
