@@ -135,9 +135,6 @@ defmodule NervesHub.Products do
     case NervesHub.Devices.get_device_firmware_for_delta_generation_by_product(product.id) do
       {:ok, %{rows: rows}} ->
         rows
-        |> Enum.map(fn [source_id, target_id] ->
-          {source_id, target_id}
-        end)
         |> Enum.uniq()
         |> Enum.each(fn {source_id, target_id} ->
           NervesHub.Workers.FirmwareDeltaBuilder.start(source_id, target_id)
