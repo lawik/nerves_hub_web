@@ -160,6 +160,12 @@ defmodule NervesHubWeb.Router do
                 put("/:name", DeploymentController, :update)
                 delete("/:name", DeploymentController, :delete)
               end
+
+              scope "/shared-secrets" do
+                get("/", SharedSecretController, :index)
+                post("/", SharedSecretController, :create)
+                delete("/:key", SharedSecretController, :delete)
+              end
             end
           end
         end
