@@ -63,6 +63,9 @@ defmodule NervesHubWeb.Router do
     post("/users/auth", UserController, :auth)
     post("/users/login", UserController, :login)
 
+    post("/devices/onboarding", OnboardingController, :start)
+    get("/devices/onboarding/:onboarding_id", OnboardingController, :status)
+
     scope "/devices" do
       pipe_through([:api_user])
 

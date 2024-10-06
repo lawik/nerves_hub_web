@@ -28,6 +28,17 @@ defmodule NervesHubWeb.Endpoint do
     ]
   )
 
+  socket(
+    "/onboarding-socket",
+    NervesHubWeb.OnboardingSocket,
+    websocket: [
+      compress: true,
+      timeout: 180_000,
+      fullsweep_after: 0,
+      error_handler: {WebsocketConnectionError, :handle_error, []}
+    ]
+  )
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # You should set gzip to true if you are running phoenix.digest
