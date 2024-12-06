@@ -177,12 +177,15 @@
   </div>
 
   <div class="details-content">
-    <div class="flex flex-col grow">
+    <div class="flex flex-col grow gap-4">
       <div :if={@product.extensions.health and @device.extensions.health} class="details-block details-health">
         <div class="details-subheader">
           <h3 class="">Health</h3>
 
-          <div class="ml-auto">
+          <div class="ml-auto flex gap-3">
+            <time class="text-xs text-base-400" :if={@latest_metrics["timestamp"]} id="health-reported-at" phx-hook="UpdatingTimeAgo" datetime={String.replace(DateTime.to_string(DateTime.truncate(@latest_metrics["timestamp"], :second)), " ", "T")}>
+              <%= Timex.from_now(@latest_metrics["timestamp"]) %>
+            </time>
             <button class="details-refresher" aria-label={if @health_check_timer, do: "Disable Auto Refresh", else: "Enable Auto Refresh"} type="button" phx-click="toggle-health-check-auto-refresh">
               Auto refresh
               <svg :if={@health_check_timer != nil} xmlns="http://www.w3.org/2000/svg" width="24" height="14" viewBox="0 0 24 14" fill="none">
@@ -234,7 +237,7 @@
           </div>
         </div>
 
-        <div class="details-block-body details-metrics">
+        <div class="details-block-body details-metrics relative">
           <%= if (!Enum.any?(Map.values(@latest_metrics)) and !Enum.any?(Map.values(@latest_custom_metrics))) and !@alarms do %>
             <div class="display-box">
               No health information has been received for this device.
@@ -242,81 +245,78 @@
           <% end %>
 
           <%= if (Enum.any?(Map.values(@latest_metrics))) do %>
-              <%= if @latest_metrics.cpu_usage_percent || @latest_metrics.cpu_temp do %>
+              <%= if @latest_metrics["cpu_usage_percent"] || @latest_metrics["cpu_temp"] do %>
                 <div class="details-metric cpu">
                   <div class="details-metric-label">CPU</div>
-                  <span :if={@latest_metrics.cpu_usage_percent} class="details-metric-main"><%= round(@latest_metrics.cpu_usage_percent) %>%</span>
-                  <span :if={@latest_metrics.cpu_temp} class="details-metric-secondary"><%= round(@latest_metrics.cpu_temp) %>°</span>
+                  <span :if={@latest_metrics["cpu_usage_percent"]} class="details-metric-main"><%= round(@latest_metrics["cpu_usage_percent"]) %>%</span>
+                  <span :if={@latest_metrics["cpu_temp"]} class="details-metric-secondary"><%= round(@latest_metrics["cpu_temp"]) %>°</span>
                 </div>
               <% end %>
 
-              <%= if @latest_metrics.mem_used_mb do %>
+              <%= if @latest_metrics["mem_used_mb"] do %>
                 <div class="details-metric memory" x>
                   <div class="details-metric-label">Memory used</div>
-                  <span class="details-metric-main"><%= round(@latest_metrics.mem_used_mb) %> mb</span>
-                  <span class="details-metric-secondary"><%= round(@latest_metrics.mem_used_percent) %>%</span>
+                  <span class="details-metric-main"><%= round(@latest_metrics["mem_used_mb"]) %> mb</span>
+                  <span class="details-metric-secondary"><%= round(@latest_metrics["mem_used_percent"]) %>%</span>
                 </div>
               <% end %>
 
-              <div :if={@latest_metrics.load_1min} class="details-metric load">
+              <div :if={@latest_metrics["load_1min"]} class="details-metric load">
                 <div class="details-metric-label">Load avg</div>
                 <span class="details-metric-main">
-                  <%= @latest_metrics.load_1min %>
+                  <%= @latest_metrics["load_1min"] %>
                   <span class="inline-block w-[1px] h-[16px] mx-2 bg-base-700" />
-                  <%= @latest_metrics.load_5min %>
+                  <%= @latest_metrics["load_5min"] %>
                   <span class="inline-block w-[1px] h-[16px] mx-2 bg-base-700" />
-                  <%= @latest_metrics.load_15min %>
+                  <%= @latest_metrics["load_15min"] %>
                 </span>
               </div>
 
+              <% used_metrics = ["cpu_usage_percent", "cpu_temp", "mem_used_mb", "mem_used_percent", "load_1min", "load_5min", "load_15min", "mem_size_mb", "timestamp"] %>
 
-
-              <%= for {key, val} <- @latest_custom_metrics do %>
-                <div class="callout">
-                  <div class="help-text label">
+              <%= for {key, val} <- @latest_metrics do %>
+                <div :if={key not in used_metrics} class="details-metric">
+                  <div class="details-metric-label">
                     <%= key
                     |> String.replace("_", " ")
                     |> String.capitalize() %>
                   </div>
-                  <%= cond do
-                    is_float(val) ->
-                      Float.round(val, 3)
+                  <span class="details-metric-main">
+                    <%= cond do
+                      is_float(val) ->
+                        Float.round(val, 3)
 
-                    true ->
-                      val
-                  end %>
+                      true ->
+                        val
+                    end %>
+                  </span>
                 </div>
               <% end %>
           <% end %>
-          <%= if @alarms do %>
-            <div class="device-health current-alarms">
-              <div class="callout">
-                <div class="help-text label">Current Alarms</div>
-                <div :for={{{alarm, description}, index} <- Enum.with_index(@alarms)}>
-                  <div>
-                    <span phx-click={JS.toggle_class("hidden", to: "#alarm-#{index}")} class={"badge #{if has_description?(description), do: "alarm-clickable"}"}><%= alarm %></span>
-                  </div>
-                  <code :if={has_description?(description)} id={"alarm-#{index}"} class="hidden alarms-description color-white wb-ba ff-m"><%= description %></code>
-                </div>
-              </div>
-            </div>
-          <% end %>
-        </div>
-
-        <div :if={Map.get(@latest_metrics, :timestamp)} class="flex-row justify-content-between">
-          <div class="last-report">
-            <span class="label pr-1">Last reported :</span>
-            <time id="health-reported-at" phx-hook="UpdatingTimeAgo" datetime={String.replace(DateTime.to_string(DateTime.truncate(@latest_metrics.timestamp, :second)), " ", "T")}>
-              <%= Timex.from_now(@latest_metrics.timestamp) %>
-            </time>
-          </div>
-          <div>
+          <div class="absolute right-3 bottom-3 text-right text-xs text-base-300 hover:text-base-100 hover:underline">
             <.link navigate={~p"/org/#{@org.name}/#{@product.name}/devices/#{@device.identifier}/health"}>
-              Full metrics
+            Show detailed metrics
             </.link>
           </div>
         </div>
+
       </div>
+
+    <%= if Enum.any?(@alarms || []) do %>
+    <div class="details-block">
+      <div class="details-subheader">
+        <h3>Alarms</h3>
+      </div>
+      <div class="details-block-body details-metrics">
+        <div class="details-metric alarm" :for={{{alarm, description}, index} <- Enum.with_index(@alarms)}>
+            <div class="details-metric-label">Alarm</div>
+            <span class="details-metric-main"><%= alarm %></span>
+            <code class="details-metric-secondary" :if={has_description?(description)}><%= description %></code>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
     </div>
 
     <div class="details-block details-map grow"></div>
@@ -523,7 +523,7 @@
           </a>
         </div>
 
-        <%= render(NervesHubWeb.AuditLogView, "_audit_log_feed.html", assigns) %>
+        <AuditLogFeed.render audit_logs={@audit_logs} audit_pager={@audit_pager} />
       </div>
     </div>
   </div>

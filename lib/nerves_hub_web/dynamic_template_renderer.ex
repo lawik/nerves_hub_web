@@ -41,11 +41,11 @@ defmodule NervesHubWeb.DynamicTemplateRenderer do
               new_template |> Path.extname() |> String.trim_leading(".") |> String.to_atom()
 
             new_engine = Map.fetch!(Phoenix.Template.engines(), new_ext)
-            new_ast = new_engine.compile(new_template, filename)
+            new_ast = new_engine.compile(new_template, new_filename)
 
             quote do
-              @file unquote(template)
-              @external_resource unquote(template)
+              @file unquote(new_template)
+              @external_resource unquote(new_template)
               def render(var!(assigns)) when is_map(var!(assigns)) do
                 if Application.get_env(:nerves_hub, :new_ui) && var!(assigns)[:new_ui] do
                   unquote(new_ast)

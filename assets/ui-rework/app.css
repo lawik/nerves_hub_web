@@ -212,7 +212,7 @@
   }
 
   .details-metrics {
-    @apply flex gap-2;
+    @apply flex gap-2 flex-wrap;
   }
 
   .details-metric {
@@ -266,6 +266,14 @@
 
   .load .details-metric-secondary {
     @apply text-primary-500;
+  }
+
+  .details-metric.alarm {
+    @apply border-b-error-500;
+  }
+
+  .alarm .details-metric-secondary {
+    @apply text-error-500;
   }
 
   .badge {

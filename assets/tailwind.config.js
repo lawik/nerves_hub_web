@@ -34,6 +34,9 @@ module.exports = {
         warning: {
           500: '#f59e0b'
         },
+        error: {
+          500: '#ef4444'
+        }
       }
     }
   },

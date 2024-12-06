@@ -1,5 +1,5 @@
 defmodule NervesHubWeb.Live.Devices.Show do
-  use NervesHubWeb.LiveView
+  use NervesHubWeb, :updated_live_view
 
   require Logger
 
@@ -17,6 +17,8 @@ defmodule NervesHubWeb.Live.Devices.Show do
   alias NervesHubWeb.Components.FwupProgress
   alias NervesHubWeb.Components.DeviceLocation
   alias NervesHubWeb.Components.Utils
+
+  alias Phoenix.LiveView.JS
 
   alias Phoenix.Socket.Broadcast
 
@@ -48,7 +50,7 @@ defmodule NervesHubWeb.Live.Devices.Show do
     |> schedule_health_check_timer()
     |> assign(:fwup_progress, nil)
     |> audit_log_assigns(1)
-    |> ok(:sidebar)
+    |> ok()
   end
 
   def handle_info(%Broadcast{topic: "firmware", event: "created"}, socket) do
