@@ -36,7 +36,9 @@ defmodule NervesHubWeb.Live.Devices.Index do
     alarm: "",
     metrics_key: "",
     metrics_operator: "gt",
-    metrics_value: ""
+    metrics_value: "",
+    metadata_key: "",
+    metadata_value: ""
   }
 
   @filter_types %{

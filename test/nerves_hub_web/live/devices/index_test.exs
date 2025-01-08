@@ -228,6 +228,33 @@ defmodule NervesHubWeb.Live.Devices.IndexTest do
       assert change =~ "1 devices found"
     end
 
+    test "filters devices with specific metadata", %{conn: conn, fixture: fixture} do
+      %{device: _device, firmware: firmware, org: org, product: product} = fixture
+
+      device2 = Fixtures.device_fixture(org, product, firmware)
+
+      Devices.save_device_health(%{
+        "device_id" => device2.id,
+        "data" => %{"metadata" => %{"key1" => "foo"}}
+      })
+
+      device3 = Fixtures.device_fixture(org, product, firmware)
+
+      Devices.save_device_health(%{
+        "device_id" => device2.id,
+        "data" => %{"metadata" => %{"key1" => "bar"}}
+      })
+
+      {:ok, view, html} = live(conn, device_index_path(fixture))
+      assert html =~ device2.identifier
+
+      refute render_change(view, "update-filters", %{
+               "metadata_key" => "key1",
+               "metadata_value" => "foo"
+             }) =~
+               device2.identifier
+    end
+
     test "select device", %{conn: conn, fixture: fixture} do
       %{device: _device, firmware: firmware, org: org, product: product} = fixture
 

@@ -288,6 +288,9 @@ defmodule NervesHub.Devices do
         {:metrics_value, _value} ->
           filter_on_metric(query, filters)
 
+        {:metadata_value, _value} ->
+          filter_on_metadata(query, filters)
+
         # Ignore any undefined filter.
         # This will prevent error 500 responses on deprecated saved bookmarks etc.
         _ ->
@@ -320,6 +323,25 @@ defmodule NervesHub.Devices do
 
   defp gt_or_lt(query, value, "gt"), do: where(query, [_, dm], dm.value > ^value)
   defp gt_or_lt(query, value, "lt"), do: where(query, [_, dm], dm.value < ^value)
+
+  defp filter_on_metadata(
+         query,
+         %{metadata_key: key, metadata_value: value}
+       )
+       when key != "" do
+    query
+    |> join(:inner, [d], h in DeviceHealth, on: d.id == h.device_id)
+    |> where([_, h], h.inserted_at == subquery(latest_metadata_for_key(key)))
+    |> where([d, h], fragment("h.data->>'metadata'->>'?'", ^key) == ^value)
+  end
+
+  defp filter_on_metadata(query, _), do: query
+
+  defp latest_metadata_for_key(key) do
+    DeviceHealth
+    |> select([dh], max(dh.inserted_at))
+    |> where([dh], dh.key == ^key)
+  end
 
   def get_device_count_by_org_id(org_id) do
     q =
