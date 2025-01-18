@@ -75,7 +75,9 @@
   </div>
 </div>
 
+
 <div class="sidebar-main-content">
+  <FwupProgressNew.render :if={@fwup_progress} fwup_progress={@fwup_progress} />
   <div :if={@device.deleted_at} class="alert alert-danger mt-0">
     <div class="content-container">
       <center>Device is deleted and must be restored to use</center>
@@ -177,149 +179,215 @@
   </div>
 
   <div class="details-content">
-    <div class="flex flex-col grow gap-4">
-      <div :if={@product.extensions.health and @device.extensions.health} class="details-block details-health">
-        <div class="details-subheader">
-          <h3 class="">Health</h3>
+    <div class="horizontal-two-split flex flex-row flex-nowrap gap-4 p-6">
+      <div class="flex flex-col gap-4">
+        <div :if={@product.extensions.health and @device.extensions.health} class="details-block details-health">
+          <div class="details-subheader">
+            <h3 class="">Health</h3>
 
-          <div class="ml-auto flex gap-3">
-            <time class="text-xs text-base-400" :if={@latest_metrics["timestamp"]} id="health-reported-at" phx-hook="UpdatingTimeAgo" datetime={String.replace(DateTime.to_string(DateTime.truncate(@latest_metrics["timestamp"], :second)), " ", "T")}>
-              <%= Timex.from_now(@latest_metrics["timestamp"]) %>
-            </time>
-            <button class="details-refresher" aria-label={if @health_check_timer, do: "Disable Auto Refresh", else: "Enable Auto Refresh"} type="button" phx-click="toggle-health-check-auto-refresh">
-              Auto refresh
-              <svg :if={@health_check_timer != nil} xmlns="http://www.w3.org/2000/svg" width="24" height="14" viewBox="0 0 24 14" fill="none">
-                <g clip-path="url(#clip0_2261_7999)">
-                  <rect width="24" height="14" rx="7" fill="#6366F1" />
-                  <g filter="url(#filter0_d_2261_7999)">
-                    <rect x="12" y="2" width="10" height="10" rx="5" fill="#FAFAFA" />
+            <div class="ml-auto flex gap-3">
+              <time class="text-xs text-base-400" :if={@latest_metrics["timestamp"]} id="health-reported-at" phx-hook="UpdatingTimeAgo" datetime={String.replace(DateTime.to_string(DateTime.truncate(@latest_metrics["timestamp"], :second)), " ", "T")}>
+                <%= Timex.from_now(@latest_metrics["timestamp"]) %>
+              </time>
+              <button class="details-refresher" aria-label={if @health_check_timer, do: "Disable Auto Refresh", else: "Enable Auto Refresh"} type="button" phx-click="toggle-health-check-auto-refresh">
+                Auto refresh
+                <svg :if={@health_check_timer != nil} xmlns="http://www.w3.org/2000/svg" width="24" height="14" viewBox="0 0 24 14" fill="none">
+                  <g clip-path="url(#clip0_2261_7999)">
+                    <rect width="24" height="14" rx="7" fill="#6366F1" />
+                    <g filter="url(#filter0_d_2261_7999)">
+                      <rect x="12" y="2" width="10" height="10" rx="5" fill="#FAFAFA" />
+                    </g>
                   </g>
-                </g>
-                <defs>
-                  <filter id="filter0_d_2261_7999" x="10" y="1" width="14" height="14" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
-                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                    <feOffset dy="1" />
-                    <feGaussianBlur stdDeviation="1" />
-                    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0" />
-                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_2261_7999" />
-                    <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_2261_7999" result="shape" />
-                  </filter>
-                  <clipPath id="clip0_2261_7999">
-                    <rect width="24" height="14" rx="7" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
+                  <defs>
+                    <filter id="filter0_d_2261_7999" x="10" y="1" width="14" height="14" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                      <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+                      <feOffset dy="1" />
+                      <feGaussianBlur stdDeviation="1" />
+                      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0" />
+                      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_2261_7999" />
+                      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_2261_7999" result="shape" />
+                    </filter>
+                    <clipPath id="clip0_2261_7999">
+                      <rect width="24" height="14" rx="7" fill="white" />
+                    </clipPath>
+                  </defs>
+                </svg>
 
-              <svg :if={@health_check_timer == nil} xmlns="http://www.w3.org/2000/svg" width="24" height="14" viewBox="0 0 24 14" fill="none">
-                <g clip-path="url(#clip0_227_39787)">
-                  <rect width="24" height="14" rx="7" fill="#27272A" />
-                  <g filter="url(#filter0_d_227_39787)">
-                    <rect x="2" y="2" width="10" height="10" rx="5" fill="#141417" />
+                <svg :if={@health_check_timer == nil} xmlns="http://www.w3.org/2000/svg" width="24" height="14" viewBox="0 0 24 14" fill="none">
+                  <g clip-path="url(#clip0_227_39787)">
+                    <rect width="24" height="14" rx="7" fill="#27272A" />
+                    <g filter="url(#filter0_d_227_39787)">
+                      <rect x="2" y="2" width="10" height="10" rx="5" fill="#141417" />
+                    </g>
                   </g>
-                </g>
-                <defs>
-                  <filter id="filter0_d_227_39787" x="0" y="1" width="14" height="14" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                    <feFlood flood-opacity="0" result="BackgroundImageFix" />
-                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                    <feOffset dy="1" />
-                    <feGaussianBlur stdDeviation="1" />
-                    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0" />
-                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_227_39787" />
-                    <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_227_39787" result="shape" />
-                  </filter>
-                  <clipPath id="clip0_227_39787">
-                    <rect width="24" height="14" rx="7" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="details-block-body details-metrics relative">
-          <%= if (!Enum.any?(Map.values(@latest_metrics)) and !Enum.any?(Map.values(@latest_custom_metrics))) and !@alarms do %>
-            <div class="display-box">
-              No health information has been received for this device.
+                  <defs>
+                    <filter id="filter0_d_227_39787" x="0" y="1" width="14" height="14" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                      <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+                      <feOffset dy="1" />
+                      <feGaussianBlur stdDeviation="1" />
+                      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0" />
+                      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_227_39787" />
+                      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_227_39787" result="shape" />
+                    </filter>
+                    <clipPath id="clip0_227_39787">
+                      <rect width="24" height="14" rx="7" fill="white" />
+                    </clipPath>
+                  </defs>
+                </svg>
+              </button>
             </div>
-          <% end %>
+          </div>
 
-          <%= if (Enum.any?(Map.values(@latest_metrics))) do %>
-              <%= if @latest_metrics["cpu_usage_percent"] || @latest_metrics["cpu_temp"] do %>
-                <div class="details-metric cpu">
-                  <div class="details-metric-label">CPU</div>
-                  <span :if={@latest_metrics["cpu_usage_percent"]} class="details-metric-main"><%= round(@latest_metrics["cpu_usage_percent"]) %>%</span>
-                  <span :if={@latest_metrics["cpu_temp"]} class="details-metric-secondary"><%= round(@latest_metrics["cpu_temp"]) %>°</span>
-                </div>
-              <% end %>
-
-              <%= if @latest_metrics["mem_used_mb"] do %>
-                <div class="details-metric memory" x>
-                  <div class="details-metric-label">Memory used</div>
-                  <span class="details-metric-main"><%= round(@latest_metrics["mem_used_mb"]) %> mb</span>
-                  <span class="details-metric-secondary"><%= round(@latest_metrics["mem_used_percent"]) %>%</span>
-                </div>
-              <% end %>
-
-              <div :if={@latest_metrics["load_1min"]} class="details-metric load">
-                <div class="details-metric-label">Load avg</div>
-                <span class="details-metric-main">
-                  <%= @latest_metrics["load_1min"] %>
-                  <span class="inline-block w-[1px] h-[16px] mx-2 bg-base-700" />
-                  <%= @latest_metrics["load_5min"] %>
-                  <span class="inline-block w-[1px] h-[16px] mx-2 bg-base-700" />
-                  <%= @latest_metrics["load_15min"] %>
-                </span>
+          <div class="details-block-body details-metrics relative">
+            <%= if (!Enum.any?(Map.values(@latest_metrics)) and !Enum.any?(Map.values(@latest_custom_metrics))) and !@alarms do %>
+              <div class="display-box">
+                No health information has been received for this device.
               </div>
+            <% end %>
 
-              <% used_metrics = ["cpu_usage_percent", "cpu_temp", "mem_used_mb", "mem_used_percent", "load_1min", "load_5min", "load_15min", "mem_size_mb", "timestamp"] %>
-
-              <%= for {key, val} <- @latest_metrics do %>
-                <div :if={key not in used_metrics} class="details-metric">
-                  <div class="details-metric-label">
-                    <%= key
-                    |> String.replace("_", " ")
-                    |> String.capitalize() %>
+            <%= if (Enum.any?(Map.values(@latest_metrics))) do %>
+                <%= if @latest_metrics["cpu_usage_percent"] || @latest_metrics["cpu_temp"] do %>
+                  <div class="details-metric cpu">
+                    <div class="details-metric-label">CPU</div>
+                    <span :if={@latest_metrics["cpu_usage_percent"]} class="details-metric-main"><%= round(@latest_metrics["cpu_usage_percent"]) %>%</span>
+                    <span :if={@latest_metrics["cpu_temp"]} class="details-metric-secondary"><%= round(@latest_metrics["cpu_temp"]) %>°</span>
                   </div>
-                  <span class="details-metric-main">
-                    <%= cond do
-                      is_float(val) ->
-                        Float.round(val, 3)
+                <% end %>
 
-                      true ->
-                        val
-                    end %>
+                <%= if @latest_metrics["mem_used_mb"] do %>
+                  <div class="details-metric memory" x>
+                    <div class="details-metric-label">Memory used</div>
+                    <span class="details-metric-main"><%= round(@latest_metrics["mem_used_mb"]) %> mb</span>
+                    <span class="details-metric-secondary"><%= round(@latest_metrics["mem_used_percent"]) %>%</span>
+                  </div>
+                <% end %>
+
+                <div :if={@latest_metrics["load_1min"]} class="details-metric load">
+                  <div class="details-metric-label">Load avg</div>
+                  <span class="details-metric-main">
+                    <%= @latest_metrics["load_1min"] %>
+                    <span class="inline-block w-[1px] h-[16px] mx-2 bg-base-700" />
+                    <%= @latest_metrics["load_5min"] %>
+                    <span class="inline-block w-[1px] h-[16px] mx-2 bg-base-700" />
+                    <%= @latest_metrics["load_15min"] %>
                   </span>
                 </div>
-              <% end %>
-          <% end %>
-          <div class="absolute right-3 bottom-3 text-right text-xs text-base-300 hover:text-base-100 hover:underline">
-            <.link navigate={~p"/org/#{@org.name}/#{@product.name}/devices/#{@device.identifier}/health"}>
-            Show detailed metrics
-            </.link>
+
+                <% used_metrics = ["cpu_usage_percent", "cpu_temp", "mem_used_mb", "mem_used_percent", "load_1min", "load_5min", "load_15min", "mem_size_mb", "timestamp"] %>
+
+                <%= for {key, val} <- @latest_metrics do %>
+                  <div :if={key not in used_metrics} class="details-metric">
+                    <div class="details-metric-label">
+                      <%= key
+                      |> String.replace("_", " ")
+                      |> String.capitalize() %>
+                    </div>
+                    <span class="details-metric-main">
+                      <%= cond do
+                        is_float(val) ->
+                          Float.round(val, 3)
+
+                        true ->
+                          val
+                      end %>
+                    </span>
+                  </div>
+                <% end %>
+            <% end %>
+            <div class="absolute right-4 bottom-1 text-right text-xs text-base-400 hover:text-base-100 hover:underline">
+              <.link navigate={~p"/org/#{@org.name}/#{@product.name}/devices/#{@device.identifier}/health"}>
+              Show detailed metrics
+              </.link>
+            </div>
+          </div>
+
+        </div>
+
+        <%= if Enum.any?(@alarms || []) do %>
+        <div class="details-block">
+          <div class="details-subheader">
+            <h3>Alarms</h3>
+          </div>
+          <div class="details-block-body details-metrics">
+            <div class="details-metric alarm" :for={{alarm, description} <- @alarms}>
+                <div class="details-metric-label">Alarm</div>
+                <span class="details-metric-main"><%= alarm %></span>
+                <code class="details-metric-secondary" :if={has_description?(description)}><%= description %></code>
+            </div>
+          </div>
+        </div>
+        <% end %>
+
+        <div class="details-block">
+          <div class="details-subheader">
+            <h3>Deployments</h3>
+          </div>
+          <div class="details-block-body">
+              <span class="details-body-label">Assigned Deployment</span>
+              <.link :if={@deployment} navigate={~p"/org/#{@org.name}/#{@product.name}/deployments/#{@deployment.name}"}>
+                <span :if={@deployment.is_active} class="deployment-badge">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="6" height="6" viewBox="0 0 6 6" fill="none">
+                    <circle cx="3" cy="3" r="3" fill="#10B981"/>
+                  </svg>
+                  <span><%= @deployment.name %></span>
+                </span>
+                <span :if={!@deployment.is_active} class="deployment-badge">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="6" height="6" viewBox="0 0 6 6" fill="none">
+                    <circle cx="3" cy="3" r="3" fill="#f59e0b"/>
+                  </svg>
+                  <span><%= @deployment.name %></span>
+                </span>
+              </.link>
+              <span class="deployment-badge" :if={is_nil(@deployment)} >
+                <svg xmlns="http://www.w3.org/2000/svg" width="6" height="6" viewBox="0 0 6 6" fill="none">
+                  <circle cx="3" cy="3" r="3" fill="#71717a"/>
+                </svg>
+                <span>No Assigned Deployment</span>
+              </span>
+            </div>
+
+          <div class="details-block-footer">
+            <div :if={@update_information.update_available} class="">
+              <form phx-submit="push-available-update" class="flex gap-4 mb-4">
+                <div>
+                  <span class="details-body-label">Update available</span>
+                  <p class="text-sm">An update is available in the assigned deployment. You can skip the queue by clicking "Send available update".</p>
+                </div>
+                <button class="action-button mild self-center">Send available update</button>
+              </form>
+          </div>
+              <form :if={Enum.any?(@firmwares)} phx-submit="push-update">
+                <div class="flex-row justify-content-between">
+                  <select name="uuid" class="form-control">
+                    <option value="">Select a version</option>
+                    <%= for firmware <- @firmwares do %>
+                      <option value={firmware.uuid}><%= firmware.version %></option>
+                    <% end %>
+                  </select>
+                  <button class="btn btn-secondary ml-2">Send</button>
+                </div>
+              </form>
+              <div :if={Enum.empty?(@firmwares)} class="text-base-400 text-sm">
+                No firmware is available for this device.
+              </div>
+            </div>
           </div>
         </div>
 
-      </div>
 
-    <%= if Enum.any?(@alarms || []) do %>
-    <div class="details-block">
-      <div class="details-subheader">
-        <h3>Alarms</h3>
-      </div>
-      <div class="details-block-body details-metrics">
-        <div class="details-metric alarm" :for={{{alarm, description}, index} <- Enum.with_index(@alarms)}>
-            <div class="details-metric-label">Alarm</div>
-            <span class="details-metric-main"><%= alarm %></span>
-            <code class="details-metric-secondary" :if={has_description?(description)}><%= description %></code>
+      <div class="details-block details-map">
+        <div class="details-subheader">
+          <h3>Location</h3>
+          <span class="ml-auto text-xs text-base-400">Location determined via <%= @device.connection_metadata["location"]["source"] %></span>
+        </div>
+        <div class="details-block-body">
+          <DeviceLocationNew.render :if={@product.extensions.geo and @device.extensions.geo} location={@device.connection_metadata["location"]} />
         </div>
       </div>
+      </div>
     </div>
-    <% end %>
-
-    </div>
-
-    <div class="details-block details-map grow"></div>
   </div>
 
   <%= if @device.description do %>
@@ -417,7 +485,6 @@
     </div>
   </div>
 
-  <FwupProgress.render :if={assigns.fwup_progress} fwup_progress={@fwup_progress} />
 
   <div class="row">
     <div class="col-lg-6">
@@ -435,7 +502,6 @@
           <span :for={tag <- @device.tags || []} class="badge"><%= tag %></span>
         </div>
 
-        <DeviceLocation.render :if={@product.extensions.geo and @device.extensions.geo} location={@device.connection_metadata["location"]} />
 
         <%= if !Enum.empty?(@metadata) do %>
           <h3 class="mb-2">Metadata</h3>
@@ -461,53 +527,6 @@
     </div>
 
     <div class="col-lg-6">
-      <div>
-        <h3 class="mb-2">Deployments</h3>
-        <div class="display-box">
-          <div>
-            <div class="help-text mb-1">Assigned Deployment</div>
-            <.link :if={@deployment} navigate={~p"/org/#{@org.name}/#{@product.name}/deployments/#{@deployment.name}"} class="badge">
-              <div class={"deployment-state state-#{if @deployment.is_active, do: "on", else: "off"}"}><%= @deployment.name %></div>
-            </.link>
-            <span :if={is_nil(@deployment)} class="color-white-50">No Assigned Deployment</span>
-          </div>
-
-          <div :if={@update_information.update_available} class="mt-4">
-            <div class="help-text mb-1 tooltip-label help-tooltip">
-              <span>Update available</span>
-              <span class="tooltip-info"></span>
-              <span class="tooltip-text">An update is available in the assigned deployment. You can skip the queue by clicking "Send available update".</span>
-            </div>
-            <form phx-submit="push-available-update">
-              <div class="flex-row justify-content-between">
-                <button class="btn btn-secondary">Send available update</button>
-              </div>
-            </form>
-          </div>
-
-          <div class="mt-4">
-            <div class="help-text mb-1 tooltip-label help-tooltip">
-              <span>Send update</span>
-              <span class="tooltip-info"></span>
-              <span class="tooltip-text">Push a specific version of firmware to a device. This disables updates to prevent a deployment pushing an update on reconnect.</span>
-            </div>
-            <form :if={Enum.any?(@firmwares)} phx-submit="push-update">
-              <div class="flex-row justify-content-between">
-                <select name="uuid" class="form-control">
-                  <option value="">Select a version</option>
-                  <%= for firmware <- @firmwares do %>
-                    <option value={firmware.uuid}><%= firmware.version %></option>
-                  <% end %>
-                </select>
-                <button class="btn btn-secondary ml-2">Send</button>
-              </div>
-            </form>
-            <div :if={Enum.empty?(@firmwares)} class="color-white-50">
-              No firmware is available for this device.
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div>
         <div class="device-header-group justify-content-between">
@@ -527,4 +546,3 @@
       </div>
     </div>
   </div>
-</div>

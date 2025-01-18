@@ -180,7 +180,6 @@
   }
 
   .details-content {
-    @apply flex gap-4 p-6;
   }
 
   .details-block {
@@ -201,6 +200,10 @@
 
   .details-block-body {
     @apply px-4 pt-2 pb-6;
+  }
+
+  .details-block-footer {
+    @apply border-t border-base-700 px-4 pt-2 pb-2;
   }
 
   .details-refresher {
@@ -244,6 +247,28 @@
     line-height: 24px;
   }
 
+  .details-body-label {
+    @apply text-base-500;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px;
+  }
+
+  .deployment-badge {
+    @apply inline-flex gap-1 items-center rounded-full border border-base-700 text-base-300 bg-base-800 px-[6px] py-[2px] pr-[8px];
+
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16px; /* 133.333% */
+    letter-spacing: 0.024px;
+  }
+  
+  .deployment-badge span {
+    @apply self-start;
+  }
+
   .details-metric.cpu {
     @apply border-b-success-500;
   }
@@ -282,13 +307,17 @@
   }
 
   .action-button {
-    @apply border border-base-600 bg-base-800 text-base-300;
-    display: flex;
-    gap: 8px;
+    @apply flex gap-2 items-center justify-center rounded border border-base-600 bg-base-800 text-base-300;
     padding: 6px 12px;
-    justify-content: center;
-    align-items: center;
-    border-radius: 4px;
+  }
+
+  .action-button.mild {
+    @apply flex gap-2 items-center justify-center rounded border border-base-600 bg-base-800 text-base-500;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px;
   }
 
   .action-search {

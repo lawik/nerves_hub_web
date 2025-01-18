@@ -15,7 +15,9 @@ defmodule NervesHubWeb.Live.Devices.Show do
   alias NervesHubWeb.Components.AuditLogFeed
   alias NervesHubWeb.Components.DeviceHeader
   alias NervesHubWeb.Components.FwupProgress
+  alias NervesHubWeb.Components.FwupProgressNew
   alias NervesHubWeb.Components.DeviceLocation
+  alias NervesHubWeb.Components.DeviceLocationNew
   alias NervesHubWeb.Components.Utils
 
   alias Phoenix.LiveView.JS

@@ -47,6 +47,7 @@ config :nerves_hub, NervesHubWeb.Endpoint,
 # Database and Oban
 #
 config :nerves_hub, NervesHub.Repo,
+  log: false,
   queue_target: 500,
   queue_interval: 5_000,
   migration_lock: :pg_advisory_lock
@@ -102,6 +103,9 @@ config :tailwind,
     ),
     cd: Path.expand("../assets", __DIR__)
   ]
+
+config :nerves_hub,
+  new_ui: true
 
 # Environment specific config
 import_config "#{Mix.env()}.exs"
