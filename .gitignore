@@ -20,6 +20,5 @@ test/fixtures/ssl/device-root-ca.srl
 .elixir-tools
 
 # Generated Ash for the machine
-lib/hub.ex
-lib/hub/*
+
 priv/resource_snapshots
