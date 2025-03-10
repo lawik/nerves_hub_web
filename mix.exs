@@ -6,6 +6,7 @@ defmodule NervesHub.MixProject do
       app: :nerves_hub,
       version: "2.0.0+#{build()}",
       start_permanent: Mix.env() == :prod,
+      consolidate_protocols: Mix.env() != :dev,
       deps: deps(),
       aliases: aliases(),
       preferred_cli_env: [
@@ -67,6 +68,10 @@ defmodule NervesHub.MixProject do
   # Run "mix help deps" for examples and options.
   defp deps do
     [
+      {:sourceror, "~> 1.7", only: [:dev, :test]},
+      {:ash_postgres, [github: "ash-project/ash_postgres", override: true]},
+      {:ash, "~> 3.0"},
+      {:igniter, "~> 0.5", only: [:dev, :test]},
       {:mix_test_watch, "~> 1.0", only: :test, runtime: false},
       {:recon, "~> 2.5"},
       {:assert_eventually, "~> 1.0.0", only: [:dev, :test]},
@@ -110,7 +115,8 @@ defmodule NervesHub.MixProject do
       {:opentelemetry_phoenix, "~> 2.0.0-rc.1 "},
       {:opentelemetry_oban, "~> 1.0",
        git: "https://github.com/joshk/opentelemetry-erlang-contrib",
-       branch: "update-obans-semantic-conventions", subdir: "instrumentation/opentelemetry_oban"},
+       branch: "update-obans-semantic-conventions",
+       subdir: "instrumentation/opentelemetry_oban"},
       {:opentelemetry_bandit, "~> 0.2.0-rc.1"},
       {:open_telemetry_decorator, "~> 1.5"},
       {:phoenix, "~> 1.7.0"},
@@ -158,7 +164,8 @@ defmodule NervesHub.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       "ecto.migrate.reset": ["ecto.drop", "ecto.create", "ecto.migrate"],
       "ecto.migrate.redo": ["ecto.rollback", "ecto.migrate"],
-      test: ["ecto.create --quiet", "ecto.migrate", "test"]
+      test: ["ash.setup --quiet", "test"],
+      setup: ["ash.setup", "run priv/repo/seeds.exs"]
     ]
   end
 

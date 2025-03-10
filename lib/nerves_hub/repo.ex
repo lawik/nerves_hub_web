@@ -1,7 +1,6 @@
 defmodule NervesHub.Repo do
-  use Ecto.Repo,
-    otp_app: :nerves_hub,
-    adapter: Ecto.Adapters.Postgres
+  use AshPostgres.Repo,
+    otp_app: :nerves_hub
 
   import Ecto.Query, only: [where: 3]
 
@@ -50,6 +49,21 @@ defmodule NervesHub.Repo do
   end
 
   def destroy(struct_or_changeset), do: delete(struct_or_changeset)
+
+  def installed_extensions do
+    # Add extensions here, and the migration generator will install them.
+    ["ash-functions"]
+  end
+
+  # Don't open unnecessary transactions
+  # will default to `false` in 4.0
+  def prefer_transaction? do
+    false
+  end
+
+  def min_pg_version do
+    %Version{major: 16, minor: 0, patch: 0}
+  end
 end
 
 defmodule NervesHub.ObanRepo do
