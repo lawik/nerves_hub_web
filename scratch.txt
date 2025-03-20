@@ -1,0 +1,3 @@
+AshAi.iex_chat(actor: :foo, actions: Enum.map(Ash.Domain.Info.resources(Hub), & {&1, :*}))
+
+AshAi.instruct("What organisations do we have?", actor: :foo, actions: Enum.map(Ash.Domain.Info.resources(Hub), & {&1, :*}))

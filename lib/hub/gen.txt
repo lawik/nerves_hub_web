@@ -1,0 +1,32 @@
+resources = Ash.Domain.Info.resources(Hub)
+iolist = Enum.flat_map(resources, fn resource ->
+    [
+        """
+        resource #{String.replace(to_string(resource), "Elixir.", "")} do
+        """,
+    Enum.map(Ash.Resource.Info.actions(resource), fn action ->
+        case action do
+          %Ash.Resource.Actions.Read{} ->
+            """
+                define :list_#{Ash.Resource.Info.short_name(resource)}s, action: :#{action.name}
+            """
+          %{arguments: []} ->
+            """
+                define :#{action.name}_#{Ash.Resource.Info.short_name(resource)}, action: :#{action.name}
+            """
+          %{arguments: args} ->
+            """
+                define :#{action.name}_#{Ash.Resource.Info.short_name(resource)}, action: :#{action.name}, args: #{inspect(args)}
+            """
+          _ ->
+            """
+                define :#{action.name}_#{Ash.Resource.Info.short_name(resource)}, action: :#{action.name}
+            """
+        end
+
+    end),
+    """
+    end
+    """]
+end)
+IO.iodata_to_binary(iolist) |> IO.puts()

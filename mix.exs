@@ -68,6 +68,8 @@ defmodule NervesHub.MixProject do
   # Run "mix help deps" for examples and options.
   defp deps do
     [
+      #{:ash_ai, [github: "ash-project/ash_ai", override: true]},
+      {:ash_ai, [path: "~/projects/ash_ai", override: true]},
       {:sourceror, "~> 1.7", only: [:dev, :test]},
       {:ash_postgres, [github: "ash-project/ash_postgres", override: true]},
       {:ash, "~> 3.0"},
