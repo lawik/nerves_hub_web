@@ -371,6 +371,29 @@ defmodule NervesHubWeb.DeviceChannel do
     {:noreply, socket}
   end
 
+  def handle_in("refresh_update", %{"firmware_uuid" => firmware_uuid}, socket) do
+    payload = Devices.resolve_update(device)
+
+    case payload do
+      # Only re-send if it still resolves to the intended update
+      %{update_available: true, firmware_meta: %{uuid: ^firmware_uuid}} ->
+        :telemetry.execute([:nerves_hub, :devices, :update, :refresh], %{}, %{
+          identifier: device.identifier,
+          firmware_uuid: firmware_uuid
+        })
+
+        # We are not running Devices.update_started because this is not starting the update
+        # it should only occur as a continuation/refresh of an outdated update URL
+
+        push(socket, "update", payload)
+
+        {:noreply, socket}
+
+      false ->
+        {:noreply, socket}
+    end
+  end
+
   def handle_in("rebooting", _, socket) do
     {:noreply, socket}
   end
