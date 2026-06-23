@@ -47,8 +47,13 @@ defmodule NervesHubWeb.API.DeviceController do
 
     opts =
       if sort_field = Map.get(params, "sort") do
-        sort_direction = Map.get(params, "sort_direction", "asc")
-        Map.put(opts, :sort, {String.to_atom(sort_direction), String.to_existing_atom(sort_field)})
+        sort_direction =
+          case Map.get(params, "sort_direction", "asc") do
+            "desc" -> :desc
+            _ -> :asc
+          end
+
+        Map.put(opts, :sort, {sort_direction, String.to_existing_atom(sort_field)})
       else
         opts
       end
