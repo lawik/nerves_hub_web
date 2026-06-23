@@ -38,7 +38,19 @@ defmodule NervesHubWeb.API.DeviceController do
   plug(:validate_role, [org: :view] when action in [:index, :show, :auth])
 
   def index(%{assigns: %{current_scope: %{org: org}, product: product}} = conn, params) do
-    filters = Map.get(params, "filters", %{}) |> Map.new(fn {k, v} -> {String.to_existing_atom(k), v} end)
+    # Drop unknown filter keys (DeviceFiltering ignores them via its catch-all
+    # clause anyway) so a bogus key does not raise ArgumentError -> 500.
+    filters =
+      params
+      |> Map.get("filters", %{})
+      |> Enum.flat_map(fn {k, v} ->
+        try do
+          [{String.to_existing_atom(k), v}]
+        rescue
+          ArgumentError -> []
+        end
+      end)
+      |> Map.new()
 
     opts = %{
       pagination: PaginationHelpers.atomize_pagination_params(Map.get(params, "pagination", %{})),
@@ -46,11 +58,13 @@ defmodule NervesHubWeb.API.DeviceController do
     }
 
     opts =
-      if sort_field = Map.get(params, "sort") do
+      with sort_field when is_binary(sort_field) <- Map.get(params, "sort"),
+           {:ok, sort_field} <- safe_existing_atom(sort_field) do
         sort_direction = Map.get(params, "sort_direction", "asc")
-        Map.put(opts, :sort, {String.to_atom(sort_direction), String.to_existing_atom(sort_field)})
+        Map.put(opts, :sort, {String.to_atom(sort_direction), sort_field})
       else
-        opts
+        # No sort param, or an unknown sort field: fall back to the default sort.
+        _ -> opts
       end
 
     {devices, page} =
@@ -227,5 +241,11 @@ defmodule NervesHubWeb.API.DeviceController do
     |> Devices.join_and_preload_deployment_group_and_current_release()
     |> preload([:org, :product, :latest_connection])
     |> Repo.one!()
+  end
+
+  defp safe_existing_atom(string) do
+    {:ok, String.to_existing_atom(string)}
+  rescue
+    ArgumentError -> :error
   end
 end
