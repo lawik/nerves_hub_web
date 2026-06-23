@@ -16,8 +16,9 @@ defmodule NervesHubWeb.Components.ListSettingsSidebar do
     assigns = assign(assigns, :form, to_form(params))
 
     assigns =
-      update(assigns, :selected_columns, fn selected_columns ->
-        Enum.map(selected_columns || [], &Kernel.to_string/1)
+      update(assigns, :selected_columns, fn
+        nil -> nil
+        selected_columns -> Enum.map(selected_columns, &Kernel.to_string/1)
       end)
 
     ~H"""
@@ -81,11 +82,11 @@ defmodule NervesHubWeb.Components.ListSettingsSidebar do
     |> Enum.map_join(" ", &String.capitalize/1)
   end
 
+  defp selected?(_column, nil) do
+    true
+  end
+
   defp selected?(column, selected_columns) do
-    if Enum.empty?(selected_columns) do
-      true
-    else
-      to_string(column) in selected_columns
-    end
+    to_string(column) in selected_columns
   end
 end
