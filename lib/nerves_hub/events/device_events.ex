@@ -116,9 +116,15 @@ defmodule NervesHub.DeviceEvents do
           url
         end
 
+      # A device can only have one inflight update at a time (unique index on
+      # device_id). If one already exists, treat the manual update as an upsert
+      # rather than failing, then proceed to (re)notify the device.
       {:ok, _inflight_update} =
         InflightUpdate.manual_requested_changeset(device.id, firmware)
-        |> Repo.insert()
+        |> Repo.insert(
+          on_conflict: {:replace, [:firmware_id, :firmware_uuid, :status, :updated_at]},
+          conflict_target: :device_id
+        )
 
       {:ok, meta} = Firmwares.metadata_from_firmware(firmware)
       {:ok, device} = Devices.disable_updates(device, user)
