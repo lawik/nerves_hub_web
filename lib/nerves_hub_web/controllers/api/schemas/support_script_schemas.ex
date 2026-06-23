@@ -7,10 +7,10 @@ defmodule NervesHubWeb.API.Schemas.SupportScriptSchemas do
     OpenApiSpex.schema(%{
       type: :object,
       properties: %{
-        id: %Schema{type: :string},
+        id: %Schema{type: :integer},
         name: %Schema{type: :string},
         text: %Schema{type: :string},
-        tags: %Schema{type: :string},
+        tags: %Schema{type: :array, items: %Schema{type: :string}},
         inserted_at: %Schema{type: :string, format: "date-time"},
         updated_at: %Schema{type: :string, format: "date-time"},
         created_by: %Schema{
@@ -23,10 +23,10 @@ defmodule NervesHubWeb.API.Schemas.SupportScriptSchemas do
         }
       },
       example: %{
-        "id" => "1",
+        "id" => 1,
         "name" => "Clean Disk",
         "text" => "Clean.disk()",
-        "tags" => "cleanup",
+        "tags" => ["cleanup"],
         "inserted_at" => "2026-03-28T08:10:20Z",
         "updated_at" => "2026-06-23T08:10:20Z",
         "created_by" => %{
@@ -42,14 +42,14 @@ defmodule NervesHubWeb.API.Schemas.SupportScriptSchemas do
     OpenApiSpex.schema(%{
       type: :object,
       properties: %{
-        id: %Schema{type: :string},
+        id: %Schema{type: :integer},
         name: %Schema{type: :string},
-        tags: %Schema{type: :string}
+        tags: %Schema{type: :array, items: %Schema{type: :string}}
       },
       example: %{
-        "id" => "1",
+        "id" => 1,
         "name" => "Clean Disk",
-        "tags" => "cleanup"
+        "tags" => ["cleanup"]
       }
     })
   end
@@ -73,14 +73,14 @@ defmodule NervesHubWeb.API.Schemas.SupportScriptSchemas do
       example: %{
         "data" => [
           %{
-            "id" => "1",
+            "id" => 1,
             "name" => "Clean Disk",
-            "tags" => "cleanup"
+            "tags" => ["cleanup"]
           },
           %{
-            "id" => "2",
+            "id" => 2,
             "name" => "Dim the lights",
-            "tags" => "lights"
+            "tags" => ["lights"]
           }
         ],
         "pagination" => %{
@@ -102,10 +102,10 @@ defmodule NervesHubWeb.API.Schemas.SupportScriptSchemas do
       },
       example: %{
         "data" => %{
-          "id" => "1",
+          "id" => 1,
           "name" => "Snoot Boop",
           "text" => "Snoot.boop()",
-          "tags" => "snoots",
+          "tags" => ["snoots"],
           "inserted_at" => "2026-03-28T08:10:20Z",
           "updated_at" => "2026-06-23T08:10:20Z",
           "created_by" => %{
