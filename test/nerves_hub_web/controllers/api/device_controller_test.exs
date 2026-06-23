@@ -530,6 +530,32 @@ defmodule NervesHubWeb.API.DeviceControllerTest do
       assert response(conn, 204)
       assert_broadcast("update", %{})
     end
+
+    test "device already has an inflight update", %{
+      conn: conn,
+      user: user,
+      org: org,
+      tmp_dir: tmp_dir
+    } do
+      product = Fixtures.product_fixture(user, org)
+      org_key = Fixtures.org_key_fixture(org, user, tmp_dir)
+      firmware_one = Fixtures.firmware_fixture(org_key, product, %{dir: tmp_dir})
+      firmware_two = Fixtures.firmware_fixture(org_key, product, %{dir: tmp_dir})
+
+      device = Fixtures.device_fixture(org, product, firmware_one)
+
+      # The device already has an inflight update (unique index on device_id).
+      {:ok, _inflight} = Fixtures.inflight_update(device, firmware_two)
+
+      Phoenix.PubSub.subscribe(NervesHub.PubSub, "device:#{device.id}")
+
+      url = Routes.api_device_path(conn, :upgrade, org.name, product.name, device.identifier)
+      conn = post(conn, url, %{"uuid" => firmware_two.uuid})
+
+      # Should not blow up with a 500 (MatchError) just because an inflight
+      # update row already exists for the device.
+      assert response(conn, 204)
+    end
   end
 
   describe "clear penalty box" do
