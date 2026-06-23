@@ -7,13 +7,13 @@ defmodule NervesHubWeb.Plugs.SSLExcludeLoopbackTest do
   # These are the exact options used by the production SSL plug in
   # lib/nerves_hub_web/endpoint.ex:
   #
-  #   plug(Plug.SSL, rewrite_on: [:x_forwarded_proto], exclude: ["localhost"])
+  #   plug(Plug.SSL, rewrite_on: [:x_forwarded_proto], exclude: [hosts: ["localhost", "127.0.0.1"]])
   #
-  # Passing exclude: ["localhost"] overrides Plug.SSL's default exclude of
-  # [hosts: ["localhost", "127.0.0.1"]], which means the 127.0.0.1 loopback
-  # address is no longer excluded and a plain-HTTP request to it gets
-  # redirected to https.
-  @ssl_opts [rewrite_on: [:x_forwarded_proto], exclude: ["localhost"]]
+  # Passing exclude: ["localhost"] used to override Plug.SSL's default exclude
+  # of [hosts: ["localhost", "127.0.0.1"]], which meant the 127.0.0.1 loopback
+  # address was no longer excluded and a plain-HTTP request to it got
+  # redirected to https. Restoring the loopback set fixes that.
+  @ssl_opts [rewrite_on: [:x_forwarded_proto], exclude: [hosts: ["localhost", "127.0.0.1"]]]
 
   defp run_ssl(conn) do
     opts = Plug.SSL.init(@ssl_opts)

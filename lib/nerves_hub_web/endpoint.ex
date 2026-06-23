@@ -22,7 +22,7 @@ defmodule NervesHubWeb.Endpoint do
   plug(ImAlive)
 
   if Application.compile_env(:nerves_hub, :env) == :prod do
-    plug(Plug.SSL, rewrite_on: [:x_forwarded_proto], exclude: ["localhost"])
+    plug(Plug.SSL, rewrite_on: [:x_forwarded_proto], exclude: [hosts: ["localhost", "127.0.0.1"]])
   end
 
   socket("/live", Socket, websocket: [connect_info: [session: @session_options]])
