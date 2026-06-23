@@ -179,7 +179,7 @@ defmodule NervesHubWeb.API.ScriptControllerTest do
           text: "Boop.snoot()"
         })
 
-      assert %{"data" => data} = json_response(conn, 200)
+      assert %{"data" => data} = json_response(conn, 201)
       assert data["name"] == "test-script"
       assert data["text"] == "Boop.snoot()"
       assert data["created_by"]["name"] == user.name
@@ -238,7 +238,7 @@ defmodule NervesHubWeb.API.ScriptControllerTest do
           text: "Boop.snoot()"
         })
 
-      assert %{"data" => data} = json_response(conn, 200)
+      assert %{"data" => data} = json_response(conn, 201)
       assert data["name"] == "test-script"
       assert data["text"] == "Boop.snoot()"
       assert data["created_by"]["name"] == user.name
@@ -258,7 +258,7 @@ defmodule NervesHubWeb.API.ScriptControllerTest do
           text: "Boop.snoot()"
         })
 
-      assert %{"data" => data} = json_response(conn, 200)
+      assert %{"data" => data} = json_response(conn, 201)
       assert data["name"] == "test-script"
       assert data["text"] == "Boop.snoot()"
       assert data["created_by"]["name"] == user.name

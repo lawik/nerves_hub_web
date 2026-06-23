@@ -104,7 +104,9 @@ defmodule NervesHubWeb.API.ScriptController do
 
   def create(%{assigns: %{current_scope: scope}} = conn, params) do
     with {:ok, script} <- Scripts.create(scope.product, scope.user, params) do
-      render(conn, :show, script: script)
+      conn
+      |> put_status(:created)
+      |> render(:show, script: script)
     end
   end
 
