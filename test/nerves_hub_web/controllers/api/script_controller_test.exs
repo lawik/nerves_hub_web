@@ -2,8 +2,12 @@ defmodule NervesHubWeb.API.ScriptControllerTest do
   use NervesHubWeb.APIConnCase, async: true
   use Mimic
 
+  import Ecto.Query
+
   alias NervesHub.Fixtures
+  alias NervesHub.Repo
   alias NervesHub.Scripts.Runner
+  alias NervesHub.Scripts.Script
 
   setup context do
     org_key = Fixtures.org_key_fixture(context.org, context.user, context.tmp_dir)
@@ -154,6 +158,23 @@ defmodule NervesHubWeb.API.ScriptControllerTest do
       assert %{"data" => data} = json_response(conn, 200)
       assert data["name"] == "test-script"
       assert data["created_by"]["name"] == user.name
+    end
+
+    test "returns a script whose creator is missing (created_by nil)", %{conn: conn, org: org, product: product, user: user} do
+      script = Fixtures.support_script_fixture(product, user, %{name: "orphan-script"})
+
+      # Simulate a legacy script, or one whose creator was soft-deleted/removed.
+      # The created_by assoc carries `where: [deleted_at: nil]`, so this preloads as nil.
+      {1, _} =
+        Script
+        |> where([s], s.id == ^script.id)
+        |> Repo.update_all(set: [created_by_id: nil])
+
+      conn = get(conn, ~p"/api/orgs/#{org.name}/products/#{product.name}/scripts/#{script.id}")
+
+      assert %{"data" => data} = json_response(conn, 200)
+      assert data["name"] == "orphan-script"
+      assert data["created_by"] == nil
     end
 
     test "shows a 404 when script not found", %{conn: conn, org: org, product: product} do
