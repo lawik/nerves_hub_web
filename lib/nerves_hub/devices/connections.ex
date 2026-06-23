@@ -39,8 +39,7 @@ defmodule NervesHub.Devices.Connections do
           metadata: fragment("EXCLUDED.metadata"),
           status: fragment("EXCLUDED.status"),
           lib: fragment("EXCLUDED.lib"),
-          lib_version: fragment("EXCLUDED.lib_version"),
-          network_interface: fragment("EXCLUDED.network_interface")
+          lib_version: fragment("EXCLUDED.lib_version")
         ]
       )
 
