@@ -1,9 +1,11 @@
 defmodule NervesHubWeb.Live.DeploymentGroups.IndexTest do
   use NervesHubWeb.ConnCase.Browser, async: true
 
+  alias NervesHub.Accounts.User
   alias NervesHub.Devices
   alias NervesHub.Fixtures
   alias NervesHub.ManagedDeployments
+  alias NervesHub.Repo
   alias NervesHubWeb.Components.ListSettingsSidebar
 
   test "no deployment groups", %{conn: conn, user: user, org: org} do
@@ -209,6 +211,41 @@ defmodule NervesHubWeb.Live.DeploymentGroups.IndexTest do
         |> check(@friendly_column_name)
         |> assert_has("th", text: @label, timeout: 1_000)
       end
+    end
+  end
+
+  describe "version constraint column body" do
+    # Regression for issue #14: the body cell on index.html.heex is guarded by
+    # the misspelled :version_contraint while the header uses the correct
+    # :version_constraint. For a user with saved (non-nil) column prefs,
+    # show_column?/3 falls into the membership branch, so the misspelled key is
+    # never present and the Version Constraint body cell is always hidden even
+    # though the header renders. Existing tests use nil prefs (header-only),
+    # which is why they pass despite the bug.
+    test "renders the version constraint value when the column is selected", %{
+      conn: conn,
+      fixture: %{user: user, org: org, product: product, deployment_group: deployment_group}
+    } do
+      assert is_nil(user.display_preferences)
+
+      # The standard fixture sets conditions.version to "<= 1.0.0".
+      version = deployment_group.conditions.version
+      assert version == "<= 1.0.0"
+
+      # Save a non-nil preference list that includes :version_constraint so
+      # show_column?/3 uses membership rather than the nil -> true default.
+      {:ok, _user} =
+        user
+        |> User.update_selected_default_columns_changeset(
+          :deployment_group_list_columns,
+          [:version_constraint]
+        )
+        |> Repo.update()
+
+      conn
+      |> visit("/org/#{org.name}/#{product.name}/deployment_groups")
+      |> assert_has("th", text: "Version Constraint")
+      |> assert_has("td", text: version)
     end
   end
 
