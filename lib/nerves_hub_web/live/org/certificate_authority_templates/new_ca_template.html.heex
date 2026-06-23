@@ -37,7 +37,7 @@ $ openssl req -new -x509 -key rootCA.key -sha256 -days 3650 \
         <h3 class="text-base-50 mb-2 text-base font-semibold">Step 3</h3>
         <p class="text-base-400 mb-2 text-sm">Create a CSR with the generated registration code in the <strong>Subject Alternative Name (SAN)</strong> field</p>
         <pre class="bg-base-900 border-base-700 overflow-x-auto rounded border p-3"><code class="text-xs text-base-300" phx-hook="HighlightCode" id="step-3">$ openssl req -new -key verificationCert.key -out verificationCert.csr \
-    -subj "/CN=certificate-verification"
+    -subj "/CN=certificate-verification" \
     -addext "subjectAltName=URI:urn:nerveshub:verify:{@registration_code}"</code></pre>
       </div>
 
