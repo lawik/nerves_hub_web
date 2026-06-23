@@ -109,6 +109,21 @@ defmodule NervesHub.Devices.ConnectionsTest do
 
       assert device.network_interface == :unknown
     end
+
+    test "reconnect preserves a previously stored network_interface", %{device: device} do
+      assert {:ok, %DeviceConnection{id: ref}} =
+               Connections.device_connecting(device.org_id, device.product_id, device.id)
+
+      {:ok, _connection} = Connections.update_network_interface(ref, "eth0")
+      assert Connections.get_latest_for_device(device.id).network_interface == :ethernet
+
+      # Simulate a reconnect for the same device. The on_conflict upsert must
+      # not clobber the previously reported network_interface with NULL.
+      assert {:ok, _connection} =
+               Connections.device_connecting(device.org_id, device.product_id, device.id)
+
+      assert Connections.get_latest_for_device(device.id).network_interface == :ethernet
+    end
   end
 
   describe "clean_stale_connections/0" do
