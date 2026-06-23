@@ -118,7 +118,7 @@ defmodule NervesHub.FirmwareUpdates do
 
           {:ok, _device} = Devices.update_device(device, %{updates_blocked_until: blocked_until})
         else
-          DeviceTemplates.audit_firmware_upgrade_failed(device, nil, info["reason"])
+          DeviceTemplates.audit_firmware_upgrade_failed(device, info["reason"])
         end
       end,
       preload: :deployment
