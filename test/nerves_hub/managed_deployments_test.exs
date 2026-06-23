@@ -1564,4 +1564,58 @@ defmodule NervesHub.ManagedDeploymentsTest do
       assert other_dg.id in ids
     end
   end
+
+  describe "empty-tags 'Allow any' consistency (issue #16)" do
+    # A deployment group with empty conditions.tags and tag_operator: :or ("Allow any")
+    # is treated as matching ALL devices on the connect/assignment path
+    # (matching_deployment_groups/2 has a `jsonb_array_length(tags) = 0` disjunct for
+    # the :or branch), but matched_devices_count/2 counts 0 because the SQL becomes
+    # `ARRAY[]::text[] && tags` which is always false.
+    #
+    # The two code paths must agree: if matching_deployment_groups/2 considers the
+    # group a match for a device, matched_devices_count/2 must count that device.
+    test "matched_devices_count agrees with matching_deployment_groups", %{
+      org: org,
+      product: product,
+      firmware: firmware,
+      user: user
+    } do
+      {:ok, deployment_group} =
+        ManagedDeployments.create_deployment_group(
+          %{
+            name: "Empty tags Allow any",
+            conditions: %{
+              "version" => "",
+              "tags" => [],
+              "tag_operator" => "or"
+            }
+          },
+          product,
+          firmware,
+          user
+        )
+
+      # Device matches the group's platform/architecture, has some tags, and is not
+      # yet assigned to any deployment group.
+      device = Fixtures.device_fixture(org, product, firmware, %{tags: ["rpi"]})
+      refute device.deployment_id
+
+      # Connect/assignment path: the empty-tags "Allow any" group matches this device.
+      matching_ids =
+        device
+        |> ManagedDeployments.matching_deployment_groups()
+        |> Enum.map(& &1.id)
+
+      assert deployment_group.id in matching_ids,
+             "expected matching_deployment_groups/2 to match the empty-tags 'Allow any' group"
+
+      # Count path must agree: since the device matches and is outside the group,
+      # it must be counted. Currently this returns 0, contradicting the path above.
+      assert ManagedDeployments.matched_devices_count(deployment_group, in_deployment: false) == 1
+
+      assert ManagedDeployments.matched_device_ids(deployment_group, in_deployment: false) == [
+               device.id
+             ]
+    end
+  end
 end
