@@ -123,7 +123,7 @@ defmodule NervesHub.Devices do
     |> join(:left, [d, o, p, dg, cr], f in assoc(cr, :firmware))
     |> join(:left, [d, o, p, dg, cr, f], lc in assoc(d, :latest_connection), as: :latest_connection)
     |> join(:left, [d, o, p, dg, cr, f, lc], lh in assoc(d, :latest_health), as: :latest_health)
-    |> Repo.exclude_deleted()
+    |> maybe_exclude_deleted(filters)
     |> DeviceFiltering.sort(sorting)
     |> DeviceFiltering.build_filters(filters)
     |> preload([d, o, p, dg, cr, f, latest_connection: lc, latest_health: lh],
@@ -135,6 +135,14 @@ defmodule NervesHub.Devices do
     )
     |> Flop.run(flop)
   end
+
+  # display_deleted=include/only need soft-deleted devices to be visible, so let
+  # DeviceFiltering manage deleted visibility instead of excluding them up front.
+  defp maybe_exclude_deleted(query, %{display_deleted: display_deleted})
+       when display_deleted in ["include", "only"],
+       do: query
+
+  defp maybe_exclude_deleted(query, _filters), do: Repo.exclude_deleted(query)
 
   def get_device_count_by_org_id_and_product_id(org_id, product_id) do
     query =
