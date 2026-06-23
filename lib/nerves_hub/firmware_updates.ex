@@ -287,6 +287,7 @@ defmodule NervesHub.FirmwareUpdates do
         inflight_update =
           InflightUpdate.empty_requested_changeset(device.id)
           |> Repo.insert!()
+          |> Repo.preload(:deployment_group)
 
         Map.put(device, :inflight_update, inflight_update)
 
