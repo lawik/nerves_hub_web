@@ -943,6 +943,9 @@ defmodule NervesHub.ManagedDeployments do
     end
   end
 
+  # "Allow any" with no tags: matches all devices (consistent with matching_deployment_groups/2)
+  defp where_matching_tags(query, [], :or), do: query
+
   # "Allow any": a device must have at least one of the tags
   defp where_matching_tags(query, tags, :or) do
     where(query, [d], fragment("?::text[] && tags::text[]", ^tags))
