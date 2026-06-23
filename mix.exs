@@ -151,6 +151,7 @@ defmodule NervesHub.MixProject do
       {:plug_attack, "~> 0.4.2"},
       {:postgrex, "~> 0.14"},
       {:quokka, "~> 2.13.1", only: [:dev, :test]},
+      {:remote_ip, "~> 1.2"},
       {:req, "~> 0.5"},
       {:sentry, "~> 13.0"},
       {:slipstream, "~> 1.0", only: [:test, :dev]},

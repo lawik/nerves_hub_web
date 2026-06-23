@@ -79,6 +79,12 @@ defmodule NervesHubWeb.Endpoint do
   )
 
   plug(Plug.RequestId)
+
+  # Resolve the real client IP from X-Forwarded-For so conn.remote_ip is the
+  # client behind the proxy, not the proxy itself. Rate limiting and logging
+  # depend on conn.remote_ip being the actual client.
+  plug(RemoteIp)
+
   plug(Plug.Telemetry, event_prefix: [:phoenix, :endpoint])
 
   plug(
