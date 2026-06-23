@@ -276,6 +276,50 @@ defmodule NervesHubWeb.API.DeviceControllerTest do
       assert %{"pagination" => %{"total_entries" => 20}} = json_response(conn, 200)
     end
 
+    test "ignores an unknown filter key instead of returning a 500", %{conn: conn, user: user, tmp_dir: tmp_dir} do
+      org = Fixtures.org_fixture(user, %{name: "UnknownFilterOrg"})
+      product = Fixtures.product_fixture(user, org, %{name: "unknown_filter_product"})
+      org_key = Fixtures.org_key_fixture(org, user, tmp_dir)
+      firmware = Fixtures.firmware_fixture(org_key, product, %{dir: tmp_dir})
+
+      Fixtures.device_fixture(org, product, firmware)
+
+      # The filter key is guaranteed not to be an existing atom, so
+      # String.to_existing_atom/1 in the controller raises ArgumentError -> 500.
+      # DeviceFiltering has a catch-all clause meant to ignore unknown filters,
+      # so the request should succeed and simply ignore the bogus filter.
+      conn =
+        get(
+          conn,
+          Routes.api_device_path(conn, :index, org.name, product.name, %{
+            filters: %{"some_unknown_key_xyz_#{System.unique_integer([:positive])}" => "1"}
+          })
+        )
+
+      assert %{"pagination" => %{"total_entries" => 1}} = json_response(conn, 200)
+    end
+
+    test "ignores an unknown sort field instead of returning a 500", %{conn: conn, user: user, tmp_dir: tmp_dir} do
+      org = Fixtures.org_fixture(user, %{name: "UnknownSortOrg"})
+      product = Fixtures.product_fixture(user, org, %{name: "unknown_sort_product"})
+      org_key = Fixtures.org_key_fixture(org, user, tmp_dir)
+      firmware = Fixtures.firmware_fixture(org_key, product, %{dir: tmp_dir})
+
+      Fixtures.device_fixture(org, product, firmware)
+
+      # The sort field is guaranteed not to be an existing atom, so
+      # String.to_existing_atom/1 in the controller raises ArgumentError -> 500.
+      conn =
+        get(
+          conn,
+          Routes.api_device_path(conn, :index, org.name, product.name, %{
+            sort: "some_unknown_field_xyz_#{System.unique_integer([:positive])}"
+          })
+        )
+
+      assert %{"pagination" => %{"total_entries" => 1}} = json_response(conn, 200)
+    end
+
     test "does not return soft-deleted devices", %{conn: conn, user: user, org: org, tmp_dir: tmp_dir} do
       product = Fixtures.product_fixture(user, org)
       org_key = Fixtures.org_key_fixture(org, user, tmp_dir)
