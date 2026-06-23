@@ -61,6 +61,43 @@ defmodule NervesHubWeb.Live.Org.CertificateAuthoritiesTest do
                Devices.get_ca_certificate_by_serial(serial)
     end
 
+    test "Step 3 openssl command is a single continued invocation", %{conn: conn, org: org} do
+      {:ok, _view, html} = live(conn, "/org/#{org.name}/settings/certificates/new")
+
+      # Extract the Step 3 openssl command block (the <code id="step-3"> element).
+      step_3 =
+        case Regex.run(~r{<code[^>]*id="step-3"[^>]*>(.*?)</code>}s, html) do
+          [_, contents] -> contents
+          _ -> flunk("could not find the Step 3 openssl command block in the rendered page")
+        end
+
+      # HTML-decode entities that appear in the rendered command (e.g. quotes/braces).
+      command =
+        step_3
+        |> String.replace("&quot;", "\"")
+        |> String.replace("&amp;", "&")
+        |> String.replace("&lt;", "<")
+        |> String.replace("&gt;", ">")
+
+      # The -subj line must end with a line-continuation backslash so that the
+      # following -addext (the SAN, carrying the registration code) is part of
+      # the same command. Without it, copy-paste drops the SAN and produces a
+      # CSR that fails CA ownership verification.
+      subj_line =
+        command
+        |> String.split("\n")
+        |> Enum.find(fn line -> String.contains?(line, "-subj") end)
+
+      assert subj_line, "expected to find a -subj line in the Step 3 command"
+
+      assert String.ends_with?(String.trim_trailing(subj_line), "\\"),
+             """
+             The Step 3 -subj line must end with a backslash so -addext (the SAN)
+             is part of the same openssl invocation. Found line:
+             #{inspect(subj_line)}
+             """
+    end
+
     test "renders errors when cert is invalid", %{conn: conn, org: org, tmp_dir: tmp_dir} do
       ca_file_path = Fixtures.device_certificate_authority_file()
       ca_key_file_path = Fixtures.device_certificate_authority_key_file()
