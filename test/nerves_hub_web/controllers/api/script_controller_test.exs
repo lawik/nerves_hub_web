@@ -185,6 +185,21 @@ defmodule NervesHubWeb.API.ScriptControllerTest do
       assert data["created_by"]["name"] == user.name
     end
 
+    test "returns 201 created on success, matching the OpenAPI spec", %{conn: conn, org: org, product: product} do
+      # The :create OpenAPI operation declares `created:` (201), and every sibling
+      # create endpoint (product, key, firmware, deployment_group, device, etc.) uses
+      # put_status(:created). This endpoint renders without put_status, so it returns
+      # 200. Refs lawik/nerves_hub_web#10 (spec-vs-impl mismatch).
+      conn =
+        post(conn, ~p"/api/orgs/#{org.name}/products/#{product.name}/scripts", %{
+          name: "test-script",
+          text: "Boop.snoot()"
+        })
+
+      assert %{"data" => data} = json_response(conn, 201)
+      assert data["name"] == "test-script"
+    end
+
     test "422 error if name or text are missing", %{conn: conn, org: org, product: product} do
       conn = post(conn, ~p"/api/orgs/#{org.name}/products/#{product.name}/scripts")
 
