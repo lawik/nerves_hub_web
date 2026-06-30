@@ -316,5 +316,75 @@ defmodule NervesHubWeb.API.UserControllerTest do
       conn = get(conn, ~p"/api/auth/cli_session/#{token}")
       assert response(conn, 403) =~ "Forbidden"
     end
+
+    # Regression test for lawik/nerves_hub_web#4.
+    #
+    # The throttle is keyed on the session token, not the client IP. A client
+    # cannot escape its per-token limit by rotating its source address or
+    # forging X-Forwarded-For: every request for the same token shares one
+    # bucket regardless of remote_ip / XFF. Under the previous IP-keyed throttle
+    # each spoofed address minted a fresh bucket, so this could never block.
+    test "a session token is throttled regardless of source IP or forged X-Forwarded-For",
+         %{conn: conn, user_token: user_token} do
+      on_exit(fn -> PlugAttackEts.clean(PlugAttackStorage) end)
+
+      conn = post(conn, ~p"/api/auth/cli_session")
+      token = json_response(conn, 200)["data"]["token"]
+
+      PlugAttackEts.clean(PlugAttackStorage)
+
+      # Each poll arrives from a different remote_ip AND a different (forged)
+      # X-Forwarded-For, as an attacker rotating addresses would send.
+      poll = fn n ->
+        build_auth_conn(user_token)
+        |> Map.put(:remote_ip, {10, 0, 0, n})
+        |> put_req_header("x-forwarded-for", "203.0.113.#{n}")
+        |> get(~p"/api/auth/cli_session/#{token}")
+      end
+
+      for n <- 1..30 do
+        assert json_response(poll.(n), 200)["data"]["status"] == "waiting"
+      end
+
+      # The 31st request for the same token is blocked even though it comes from
+      # a brand new IP / XFF the throttle has never seen.
+      assert response(poll.(31), 403) =~ "Forbidden"
+    end
+
+    test "distinct session tokens are throttled independently", %{conn: conn} do
+      on_exit(fn -> PlugAttackEts.clean(PlugAttackStorage) end)
+
+      token_a = json_response(post(conn, ~p"/api/auth/cli_session"), 200)["data"]["token"]
+      token_b = json_response(post(conn, ~p"/api/auth/cli_session"), 200)["data"]["token"]
+
+      PlugAttackEts.clean(PlugAttackStorage)
+
+      for _ <- 1..30 do
+        assert json_response(get(conn, ~p"/api/auth/cli_session/#{token_a}"), 200)["data"]["status"] ==
+                 "waiting"
+      end
+
+      # Token A is exhausted, but token B has its own bucket and is unaffected.
+      assert response(get(conn, ~p"/api/auth/cli_session/#{token_a}"), 403) =~ "Forbidden"
+
+      assert json_response(get(conn, ~p"/api/auth/cli_session/#{token_b}"), 200)["data"]["status"] ==
+               "waiting"
+    end
+
+    test "a global limit backstops total request volume across tokens" do
+      on_exit(fn -> PlugAttackEts.clean(PlugAttackStorage) end)
+      PlugAttackEts.clean(PlugAttackStorage)
+
+      # The global bucket ignores the token. Pin the time so every call lands in
+      # one period window and skips the cross-node broadcast.
+      now = System.system_time(:millisecond)
+
+      for n <- 1..1000 do
+        assert NervesHubWeb.Plugs.Attack.global_throttle(time: now) == nil,
+               "request #{n} should be under the global limit"
+      end
+
+      assert {:block, _} = NervesHubWeb.Plugs.Attack.global_throttle(time: now)
+    end
   end
 end

@@ -17,8 +17,19 @@ defmodule NervesHubWeb.RateLimitPubSub do
     {:ok, []}
   end
 
-  def handle_info({:throttle, {:ip, ip}, time}, []) do
-    _ = Attack.ip_throttle(ip, time: time)
-    {:noreply, []}
+  def handle_info({:throttle, {:cli_session_token, token}, time}, state) do
+    _ = Attack.token_throttle(token, time: time)
+    {:noreply, state}
+  end
+
+  def handle_info({:throttle, :cli_session_global, time}, state) do
+    _ = Attack.global_throttle(time: time)
+    {:noreply, state}
+  end
+
+  # Ignore unrecognised keys (e.g. messages from an older node during a rolling
+  # deploy) rather than crashing the throttle-sync process.
+  def handle_info(_msg, state) do
+    {:noreply, state}
   end
 end

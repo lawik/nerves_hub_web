@@ -5,34 +5,47 @@ defmodule NervesHubWeb.Plugs.Attack do
   alias NervesHubWeb.RateLimitPubSub
   alias PlugAttack.Storage.Ets
 
-  if Mix.env() != :test do
-    rule "allow local", conn do
-      allow(conn.remote_ip == {127, 0, 0, 1})
-    end
+  # Guards the unauthenticated CLI-session poll endpoint
+  # (GET /api/auth/cli_session/:token).
+  #
+  # The throttle is keyed on the session token, not the client IP. The token is
+  # the secret being polled, so per-token keying directly bounds how fast a
+  # session can be polled; it cannot be evaded by spoofing X-Forwarded-For and
+  # does not depend on resolving the real client IP behind a proxy/CDN/NAT. A
+  # coarse global limit backstops raw request floods (including sweeps across
+  # many different tokens, which each get their own per-token bucket).
+  @token_limit 30
+  @token_period :timer.minutes(1)
+  @global_limit 1_000
+  @global_period :timer.minutes(1)
+
+  rule "throttle cli session polling", conn do
+    # Evaluate both buckets (so each is counted), then block if either is over.
+    token_block = token_throttle(conn.path_params["token"])
+    global_block = global_throttle()
+    token_block || global_block
   end
 
-  rule "throttle by ip", conn do
-    ip_throttle(conn.remote_ip)
+  @doc false
+  def token_throttle(token, opts \\ []) do
+    throttle({:cli_session_token, token}, @token_limit, @token_period, opts)
   end
 
-  def ip_throttle(ip, opts \\ []) do
-    key = {:ip, ip}
+  @doc false
+  def global_throttle(opts \\ []) do
+    throttle(:cli_session_global, @global_limit, @global_period, opts)
+  end
+
+  defp throttle(key, limit, period, opts) do
     time = opts[:time] || System.system_time(:millisecond)
     if !opts[:time], do: RateLimitPubSub.broadcast(key, time)
 
-    do_throttle(key, time: time, limit: 30, period: 60_000)
-  end
+    expires_at = expires_at(time, period)
+    count = Ets.increment(Storage, {:throttle, key, div(time, period)}, 1, expires_at)
 
-  defp do_throttle(key, opts) do
-    limit = Keyword.fetch!(opts, :limit)
-    period = Keyword.fetch!(opts, :period)
-    now = Keyword.fetch!(opts, :time)
-
-    expires_at = expires_at(now, period)
-    count = Ets.increment(Storage, {:throttle, key, div(now, period)}, 1, expires_at)
-    rem = limit - count
-    data = [period: period, expires_at: expires_at, limit: limit, remaining: max(rem, 0)]
-    {if(rem >= 0, do: :allow, else: :block), {:throttle, data}}
+    if count > limit do
+      {:block, {:throttle, limit: limit, period: period, expires_at: expires_at, remaining: 0}}
+    end
   end
 
   defp expires_at(now, period), do: (div(now, period) + 1) * period
