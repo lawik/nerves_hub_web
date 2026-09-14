@@ -147,8 +147,10 @@ told to come back later rather than refused outright:
 update_rejected  {"reason": "busy", "delay_for": 5}
 ```
 
-`delay_for` is in minutes. A client should treat any `update_rejected` as
-"not now" rather than "not ever", and must not retry faster than `delay_for`.
+`delay_for` is in minutes, the same unit a device uses when it answers an
+update with `status_update {"status": "rescheduled", "delay_for": 15}`. A client
+should treat any `update_rejected` as "not now" rather than "not ever", and must
+not retry faster than `delay_for`.
 
 ## Where this lives
 

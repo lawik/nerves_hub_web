@@ -100,15 +100,18 @@ defmodule NervesHub.DeviceLinkTest do
       # Verify a InflightUpdate is created
       assert Repo.exists?(where(InflightUpdate, device_id: ^device.id))
 
+      # `delay_for` is in minutes, as sent by nerves_hub_link
       :ok =
         DeviceLink.status_update(to_device_info(device), %{
           "status" => "rescheduled",
-          "delay_for" => to_timeout(minute: 15)
+          "delay_for" => 15
         })
 
       device = Repo.reload!(device)
 
       refute is_nil(device.updates_blocked_until)
+      blocked_for_seconds = DateTime.diff(device.updates_blocked_until, DateTime.utc_now(), :second)
+      assert_in_delta blocked_for_seconds, 15 * 60, 60
 
       [_, audit_log] = Repo.all(AuditLog)
       assert audit_log.description =~ "requested firmware upgrades be rescheduled"
@@ -130,7 +133,7 @@ defmodule NervesHub.DeviceLinkTest do
       :ok =
         DeviceLink.status_update(to_device_info(device), %{
           "status" => "rescheduled",
-          "delay_for" => to_timeout(minute: 15)
+          "delay_for" => 15
         })
 
       device = Repo.reload!(device)

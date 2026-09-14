@@ -79,7 +79,7 @@ defmodule NervesHub.FirmwareUpdatesTest do
     end
 
     test "'rescheduled' doesn't block the device and records a device scoped audit log", %{device: device} do
-      info = %{"delay_for" => 60_000, "reason" => "on battery"}
+      info = %{"delay_for" => 5, "reason" => "on battery"}
 
       assert :ok = FirmwareUpdates.status_update("rescheduled", device.id, info)
 
@@ -135,12 +135,12 @@ defmodule NervesHub.FirmwareUpdatesTest do
       deployment_group: deployment_group,
       device: device
     } do
-      info = %{"delay_for" => 60_000, "reason" => "on battery"}
+      info = %{"delay_for" => 5, "reason" => "on battery"}
 
       assert :ok = FirmwareUpdates.status_update("rescheduled", device.id, info)
 
       assert blocked_until = Devices.get_device(device.id).updates_blocked_until
-      assert_blocked_for(blocked_until, 1)
+      assert_blocked_for(blocked_until, 5)
 
       assert [log] = AuditLogs.logs_for(device)
       assert_actor(log, deployment_group)

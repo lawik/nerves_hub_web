@@ -1,15 +1,13 @@
 defmodule NervesHub.Repro.Finding5RescheduleUnitsTest do
   @moduledoc """
-  Reproduces: the reschedule delay is read in the wrong unit.
+  Regression test: the reschedule delay is in minutes.
 
   nerves_hub_link's `UpdateManager` turns the client's `{:reschedule, ms}`
   into `delay_for` in **minutes** (`round(ms / 60_000)`, floored at 5) and
   sends `status_update %{status: "rescheduled", delay_for: minutes}`.
-  `FirmwareUpdates.status_update/4` adds `delay_for` as **milliseconds**
-  (`NaiveDateTime.add(delay_for, :millisecond)`), so a device asking for 15
-  minutes is blocked for 15 ms and the orchestrator re-offers the update on
-  its next trigger. The existing test feeds `to_timeout(minute: 15)`, i.e.
-  milliseconds, which is not what any nerves_hub_link sends.
+  `FirmwareUpdates.status_update/4` used to add `delay_for` as milliseconds,
+  so a device asking for 15 minutes was blocked for 15 ms and the
+  orchestrator re-offered the update on its next trigger.
   """
   use NervesHub.DataCase, async: true
 

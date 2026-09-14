@@ -87,8 +87,12 @@ defmodule NervesHub.FirmwareUpdates do
     )
   end
 
-  def status_update("rescheduled", device_id, %{"delay_for" => delay_for} = info, _opts) do
-    blocked_until = NaiveDateTime.utc_now(:second) |> NaiveDateTime.add(delay_for, :millisecond)
+  # `delay_for` is in minutes. nerves_hub_link's `UpdateManager` converts the
+  # client's `{:reschedule, ms}` to whole minutes (floored at 5) before sending
+  # `status_update`, and `update_rejected` uses the same unit in the other
+  # direction.
+  def status_update("rescheduled", device_id, %{"delay_for" => delay_for_minutes} = info, _opts) do
+    blocked_until = NaiveDateTime.utc_now(:second) |> NaiveDateTime.add(delay_for_minutes, :minute)
     payload = %{blocked_until: blocked_until, reason: info["reason"]}
 
     callback = fn device ->
