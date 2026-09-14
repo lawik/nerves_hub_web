@@ -96,20 +96,32 @@ defmodule NervesHub.DeviceEvents do
           )
       end
 
-      broadcast(device, "update", update_payload)
-
-      # A device asking for firmware and a deployment group sending it are the
-      # same delivery but not the same event, and conflating them would hide how
-      # much of a fleet is driving its own updates.
-      event = if opts[:initiated_by] == :device, do: :device_requested, else: :automatic
-
-      :telemetry.execute([:nerves_hub, :devices, :update, event], %{count: 1}, %{
-        identifier: device.identifier,
-        firmware_uuid: inflight_update.firmware_uuid
-      })
-
-      {:ok, inflight_update}
+      {:ok, {inflight_update, device, update_payload}}
     end)
+    |> case do
+      {:ok, {inflight_update, device, update_payload}} ->
+        # Only once the inflight row is committed. A device can answer
+        # `status_update received` within a millisecond of being told, and
+        # that answer is handled on another connection: told any earlier, it
+        # would find no row, insert an empty one, and crash its channel on the
+        # unique index once this one committed.
+        broadcast(device, "update", update_payload)
+
+        # A device asking for firmware and a deployment group sending it are the
+        # same delivery but not the same event, and conflating them would hide how
+        # much of a fleet is driving its own updates.
+        event = if opts[:initiated_by] == :device, do: :device_requested, else: :automatic
+
+        :telemetry.execute([:nerves_hub, :devices, :update, event], %{count: 1}, %{
+          identifier: device.identifier,
+          firmware_uuid: inflight_update.firmware_uuid
+        })
+
+        {:ok, inflight_update}
+
+      res ->
+        res
+    end
   end
 
   @doc """
