@@ -299,6 +299,10 @@ defmodule NervesHubWeb.Live.NewUI.Devices.IndexTest do
       |> select("Update status", option: "Updating")
       |> refute_has("a", text: device.identifier, timeout: 1000)
 
+      # there is only an update to schedule for a device that is behind an active deployment group
+      {:ok, device} = Devices.update_firmware_metadata(device, %{uuid: Ecto.UUID.generate()}, :unknown, false)
+      deployment_group = deployment_group |> Ecto.Changeset.change(is_active: true) |> Repo.update!()
+
       {:ok, _inflight_update} = DeviceEvents.schedule_update(device.id, deployment_group)
 
       conn

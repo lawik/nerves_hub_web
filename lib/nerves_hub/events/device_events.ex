@@ -65,20 +65,33 @@ defmodule NervesHub.DeviceEvents do
     inflight_changeset =
       InflightUpdate.deployment_requested_changeset(deployment_group, device_id, priority_queue)
 
+    device = Devices.get_device(device_id)
+
+    update_opts =
+      if proxy_url = get_in(deployment_group.org.settings.firmware_proxy_url) do
+        [firmware_proxy_url: proxy_url]
+      else
+        []
+      end
+
+    # Resolved before anything is written: an `update` without a firmware URL
+    # is nothing a device can act on, and an inflight row for it would only
+    # keep the device out of the orchestrator until the row expires.
+    case Updates.resolve_update(device, deployment_group, update_opts) do
+      %UpdatePayload{update_available: false} ->
+        {:error, :no_update}
+
+      update_payload ->
+        do_schedule_update(device, deployment_group, inflight_changeset, update_payload, opts)
+    end
+  end
+
+  defp do_schedule_update(device, deployment_group, inflight_changeset, update_payload, opts) do
+    device_id = device.id
+
     Repo.transact(fn ->
       # we might need to do an upsert here
       {:ok, inflight_update} = Repo.insert(inflight_changeset)
-
-      device = Devices.get_device(device_id)
-
-      update_opts =
-        if proxy_url = get_in(deployment_group.org.settings.firmware_proxy_url) do
-          [firmware_proxy_url: proxy_url]
-        else
-          []
-        end
-
-      update_payload = Updates.resolve_update(device, deployment_group, update_opts)
 
       device = %{device | deployment_group: deployment_group}
 
@@ -148,8 +161,10 @@ defmodule NervesHub.DeviceEvents do
         {:error, :already_updating}
 
       true ->
-        {:ok, _inflight} = schedule_update(device.id, deployment_group, initiated_by: :device)
-        :ok
+        case schedule_update(device.id, deployment_group, initiated_by: :device) do
+          {:ok, _inflight} -> :ok
+          {:error, _reason} = error -> error
+        end
     end
   end
 

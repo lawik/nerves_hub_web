@@ -780,7 +780,7 @@ defmodule NervesHubWeb.Components.DevicePage.DetailsTab do
         |> put_flash(:info, "Pushing available firmware update.")
         |> halt()
 
-      :error ->
+      {:error, _reason} ->
         Logger.error(
           "An inflight update could not be created or found for the device #{device.identifier} (#{device.id})"
         )

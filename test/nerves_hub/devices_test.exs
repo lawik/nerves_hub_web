@@ -1498,6 +1498,9 @@ defmodule NervesHub.DevicesTest do
     } do
       deployment_group = Repo.preload(deployment_group, :org)
 
+      # there is only an update to schedule for a device that is behind
+      {:ok, device} = update_firmware_uuid(device, Ecto.UUID.generate())
+
       {:ok, inflight_update} = DeviceEvents.schedule_update(device.id, deployment_group)
 
       {:ok, _device} = FirmwareUpdates.firmware_update_successful(device, device.firmware_metadata)
@@ -1513,6 +1516,8 @@ defmodule NervesHub.DevicesTest do
       deployment_group = Repo.preload(deployment_group, :org)
 
       assert deployment_group.current_updated_devices == 0
+
+      {:ok, device} = update_firmware_uuid(device, Ecto.UUID.generate())
 
       {:ok, _inflight_update} = DeviceEvents.schedule_update(device.id, deployment_group)
 
